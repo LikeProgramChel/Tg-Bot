@@ -1,0 +1,26 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тестировка</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        form { margin-top: 20px; }
+        input[type=number] { width: 100px; }
+        button { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Тестировка</h1>
+    <p><a href="{{ url_for('admin_dashboard') }}">Назад</a></p>
+    <h2>Создать виртуальных пользователей</h2>
+    <form action="{{ url_for('test_users') }}" method="post">
+        {{ form.csrf_token }}
+        <p>
+            {{ form.count.label }}<br>
+            {{ form.count(size=20) }}
+        </p>
+        <p>{{ form.submit }}</p>
+    </form>
+</body>
+</html>

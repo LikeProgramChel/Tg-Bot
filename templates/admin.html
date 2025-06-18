@@ -1,0 +1,84 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Панель управления ботом</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        button { margin-right: 5px; }
+        canvas { max-width: 600px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Панель управления ботом</h1>
+    <p>Пользователь: {{ current_user }} | <a href="{{ url_for('admin_dashboard') }}">Обновить</a> | <a href="{{ url_for('test_users') }}">Тестировка</a></p>
+
+    <h2>Статистика</h2>
+    <canvas id="statsChart"></canvas>
+    <ul>
+        <li>Всего пользователей: {{ stats.total_users }}</li>
+        <li>С фото: {{ stats.profiles_with_photo }}</li>
+        <li>Активных: {{ stats.active_profiles }}</li>
+    </ul>
+
+    <h2>Пользователи</h2>
+    <table>
+        <tr>
+            <th>ID</th><th>Имя</th><th>Возраст</th><th>Пол</th><th>Фото</th><th>Лайки</th><th>Дизлайки</th><th>Статус</th><th>Блокировка</th><th>Виртуальный</th><th>Действия</th>
+        </tr>
+        {% for user_id, user in users.items() %}
+        <tr>
+            <td>{{ user_id }}</td>
+            <td>{{ user.name }}</td>
+            <td>{{ user.age }}</td>
+            <td>{{ user.gender }}</td>
+            <td>{% if user.photo_id %}✅ Есть{% else %}❌ Нет{% endif %}</td>
+            <td>{{ user.likes|length }}</td>
+            <td>{{ user.dislikes|length }}</td>
+            <td>{{ user.state }}</td>
+            <td>{{ '🚫 Заблокирован' if user.is_blocked else '✅ Активен' }}</td>
+            <td>{{ '🤖 Да' if user.is_virtual else '👤 Нет' }}</td>
+            <td>
+                <a href="{{ url_for('view_user', user_id=user_id) }}">👁 Просмотр</a>
+                <form action="{{ url_for('toggle_block_user') }}" method="post" style="display:inline;">
+                    {{ block_form.csrf_token }}
+                    {{ block_form.user_id(value=user_id) }}
+                    <button type="submit">{{ 'Разблокировать' if user.is_blocked else 'Заблокировать' }}</button>
+                </form>
+                <form action="{{ url_for('delete_user') }}" method="post" style="display:inline;">
+                    {{ delete_form.csrf_token }}
+                    {{ delete_form.user_id(value=user_id) }}
+                    <button type="submit">Удалить</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('statsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Всего пользователей', 'С фото', 'Активных'],
+                datasets: [{
+                    label: 'Статистика',
+                    data: [{{ stats.total_users }}, {{ stats.profiles_with_photo }}, {{ stats.active_profiles }}],
+                    backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'],
+                    borderColor: ['#36A2EB', '#FF6384', '#FFCE56'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

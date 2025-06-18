@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Профиль пользователя</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        img { max-width: 200px; }
+    </style>
+</head>
+<body>
+    <h1>Профиль пользователя {{ user_id }}</h1>
+    <p><strong>Имя:</strong> {{ user.name }}</p>
+    <p><strong>Возраст:</strong> {{ user.age }}</p>
+    <p><strong>Пол:</strong> {{ user.gender }}</p>
+    <p><strong>О себе:</strong> {{ user.bio }}</p>
+    <p><strong>Статус:</strong> {{ user.state }}</p>
+    <p><strong>Блокировка:</strong> {{ 'Заблокирован' if user.is_blocked else 'Активен' }}</p>
+    <p><strong>Предпочтения:</strong> Пол: {{ user.preferred_gender or 'Любой' }}, Возраст: {{ user.preferred_age_min }}-{{ user.preferred_age_max }}</p>
+    {% if user.photo_id %}
+        <p><strong>Фото:</strong> <br><img src="https://api.telegram.org/file/bot{{ token }}/{{ user.photo_id }}" alt="User Photo"></p>
+    {% else %}
+        <p><strong>Фото:</strong> Отсутствует</p>
+    {% endif %}
+    <a href="{{ url_for('admin_dashboard') }}">Назад</a>
+</body>
+</html>
