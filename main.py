@@ -64,7 +64,8 @@ user_template = {
     "preferred_age_min": 18,
     "preferred_age_max": 100,
     "is_blocked": False,
-    "is_virtual": False
+    "is_virtual": False,
+    "op_status":False
 }
 
 users = load_users()
@@ -99,15 +100,16 @@ def cancel_registration(message):
         show_main_menu(message.chat.id)
 
 
-@bot.message_handler(func=lambda m: unicodedata.normalize('NFKC', m.text.strip()) in ["Искать анкеты", "Мой профиль", "Редактировать профиль"])
+@bot.message_handler(func=lambda m: unicodedata.normalize('NFKC', m.text.strip()) in ["Искать анкеты", "Мой профиль", "Редактировать профиль", "Поддержка", "admin563"])
 def handle_menu(message):
     user_id = str(message.from_user.id)
     normalized_text = message.text
-    logging.info(f"Menu button pressed by {user_id}: {normalized_text}")
+    logging.info(f"Menu button pressed by {user_id}: {normalized_text}. He`s id: @{message.from_user.username}")
     try:
         if user_id not in users:
             bot.send_message(message.chat.id, "Пожалуйста, зарегистрируйтесь с помощью /start")
             return
+
         if users[user_id].get('is_blocked', False):
             bot.send_message(message.chat.id, "Ваш аккаунт заблокирован.")
             return
@@ -124,6 +126,13 @@ def handle_menu(message):
             show_own_profile(message)
         elif normalized_text == "Редактировать профиль":
             edit_profile(message)
+        elif normalized_text == "Поддержка":
+            bot.send_message(message.chat.id, "Username поддержки: @hello_im_roman")
+        elif normalized_text == "admin":
+            if users[user_id]["op_status"] == True:
+                bot.send_message(message.chat.id, "Hello, dev! Admin panel is avaliable on http://147.45.104.113:3000/. Login: admin, pass = roman")
+            else:
+                bot.send_message(message.chat.id, "Hey! You dont have permissions to this command! If you dev: @hello_im_roman .")
     except Exception as e:
         logging.error(f"Error in handle_menu for user {user_id}: {e}")
         bot.send_message(message.chat.id, "Произошла ошибка. Попробуйте снова.")
@@ -216,7 +225,7 @@ def handle_photo(message):
 
 def show_main_menu(chat_id):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add("Искать анкеты", "Мой профиль", "Редактировать профиль")
+    markup.add("Искать анкеты", "Мой профиль", "Редактировать профиль", "Поддержка")
     bot.send_message(chat_id, "Главное меню:", reply_markup=markup)
 
 
@@ -299,11 +308,7 @@ def handle_callback(call):
         if call.data == "like":
             current_user['likes'].append(candidate_id)
             bot.answer_callback_query(call.id, "Твой лайк отправлен!")
-            if user_id in users.get(candidate_id, {}).get('likes', []):
-                bot.send_message(
-                    call.message.chat.id,
-                    f"У вас взаимная симпатия с {users[candidate_id]['name']}! @{users[candidate_id].get('username', '')}"
-                )
+            bot.send_message(f"Спасибо! Его username: {call.from_user.username}")
         else:
             current_user['dislikes'].append(candidate_id)
             bot.answer_callback_query(call.id, "Дизлайк")
@@ -355,7 +360,8 @@ def admin_dashboard():
         stats=stats,
         current_user=auth.current_user(),
         delete_form=delete_form,
-        block_form=block_form
+        block_form=block_form,
+
     )
 
 @app.route('/user/<user_id>')

@@ -1,0 +1,92 @@
+2025-06-18 18:13:20,482 - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:3000
+2025-06-18 18:13:20,482 - [33mPress CTRL+C to quit[0m
+2025-06-18 18:13:25,083 - Received text from 6092545763: /admin563
+2025-06-18 18:46:14,806 - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:3000
+2025-06-18 18:46:14,807 - [33mPress CTRL+C to quit[0m
+2025-06-18 18:46:15,279 - Menu button pressed by 6092545763: Редактировать профиль. He`s id: @hello_im_roman
+2025-06-18 18:46:15,279 - Menu button pressed by 6092545763: Искать анкеты. He`s id: @hello_im_roman
+2025-06-18 18:46:15,279 - User 6092545763 search: found 0 candidates
+2025-06-18 18:46:15,577 - Menu button pressed by 6092545763: Поддержка. He`s id: @hello_im_roman
+2025-06-18 18:46:15,594 - Menu button pressed by 6092545763: Мой профиль. He`s id: @hello_im_roman
+2025-06-18 18:46:15,734 - Menu button pressed by 6092545763: Поддержка. He`s id: @hello_im_roman
+2025-06-18 18:46:15,749 - Menu button pressed by 6092545763: Редактировать профиль. He`s id: @hello_im_roman
+2025-06-18 18:46:15,868 - Menu button pressed by 6092545763: Редактировать профиль. He`s id: @hello_im_roman
+2025-06-18 18:46:15,896 - Menu button pressed by 6092545763: Редактировать профиль. He`s id: @hello_im_roman
+2025-06-18 18:46:15,981 - Menu button pressed by 6092545763: Поддержка. He`s id: @hello_im_roman
+2025-06-18 18:46:16,004 - Menu button pressed by 6092545763: Поддержка. He`s id: @hello_im_roman
+2025-06-18 18:46:16,102 - Menu button pressed by 6092545763: Поддержка. He`s id: @hello_im_roman
+2025-06-18 18:46:16,150 - Menu button pressed by 6092545763: Поддержка. He`s id: @hello_im_roman
+2025-06-18 18:46:16,260 - Menu button pressed by 6092545763: Поддержка. He`s id: @hello_im_roman
+2025-06-18 18:46:16,323 - Menu button pressed by 6092545763: Поддержка. He`s id: @hello_im_roman
+2025-06-18 18:46:31,207 - 127.0.0.1 - - [18/Jun/2025 18:46:31] "[31m[1mGET / HTTP/1.1[0m" 401 -
+2025-06-18 18:46:31,267 - 127.0.0.1 - - [18/Jun/2025 18:46:31] "[31m[1mGET / HTTP/1.1[0m" 401 -
+2025-06-18 18:46:44,742 - 127.0.0.1 - - [18/Jun/2025 18:46:44] "[31m[1mGET / HTTP/1.1[0m" 401 -
+2025-06-18 18:46:49,620 - Exception on / [GET]
+Traceback (most recent call last):
+  File "C:\Users\USER PC7\Documents\GitHub\Tg-Bot\.venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER PC7\Documents\GitHub\Tg-Bot\.venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER PC7\Documents\GitHub\Tg-Bot\.venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER PC7\Documents\GitHub\Tg-Bot\.venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER PC7\Documents\GitHub\Tg-Bot\.venv\Lib\site-packages\flask_httpauth.py", line 174, in decorated
+    return self.ensure_sync(f)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: admin_dashboard() missing 1 required positional argument: 'message'
+2025-06-18 18:46:49,623 - 127.0.0.1 - - [18/Jun/2025 18:46:49] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2025-06-18 18:46:49,728 - 127.0.0.1 - - [18/Jun/2025 18:46:49] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-06-18 18:49:47,466 - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:3000
+2025-06-18 18:49:47,467 - [33mPress CTRL+C to quit[0m
+2025-06-18 18:49:50,194 - Exception on / [GET]
+Traceback (most recent call last):
+  File "C:\Users\USER PC7\Documents\GitHub\Tg-Bot\.venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER PC7\Documents\GitHub\Tg-Bot\.venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER PC7\Documents\GitHub\Tg-Bot\.venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER PC7\Documents\GitHub\Tg-Bot\.venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER PC7\Documents\GitHub\Tg-Bot\.venv\Lib\site-packages\flask_httpauth.py", line 174, in decorated
+    return self.ensure_sync(f)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: admin_dashboard() missing 1 required positional argument: 'call'
+2025-06-18 18:49:50,260 - 127.0.0.1 - - [18/Jun/2025 18:49:50] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2025-06-18 18:49:50,973 - Exception on / [GET]
+Traceback (most recent call last):
+  File "C:\Users\USER PC7\Documents\GitHub\Tg-Bot\.venv\Lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER PC7\Documents\GitHub\Tg-Bot\.venv\Lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER PC7\Documents\GitHub\Tg-Bot\.venv\Lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER PC7\Documents\GitHub\Tg-Bot\.venv\Lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\USER PC7\Documents\GitHub\Tg-Bot\.venv\Lib\site-packages\flask_httpauth.py", line 174, in decorated
+    return self.ensure_sync(f)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: admin_dashboard() missing 1 required positional argument: 'call'
+2025-06-18 18:49:50,976 - 127.0.0.1 - - [18/Jun/2025 18:49:50] "[35m[1mGET / HTTP/1.1[0m" 500 -
+2025-06-18 18:51:19,656 - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:3000
+2025-06-18 18:51:19,656 - [33mPress CTRL+C to quit[0m
+2025-06-18 18:51:20,935 - 127.0.0.1 - - [18/Jun/2025 18:51:20] "GET / HTTP/1.1" 200 -
+2025-06-18 18:51:24,857 - 127.0.0.1 - - [18/Jun/2025 18:51:24] "GET /user/6092545763 HTTP/1.1" 200 -
+2025-06-18 18:51:28,741 - 127.0.0.1 - - [18/Jun/2025 18:51:28] "GET / HTTP/1.1" 200 -

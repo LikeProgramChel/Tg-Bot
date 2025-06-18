@@ -39,6 +39,7 @@
             <td>{{ user.likes|length }}</td>
             <td>{{ user.dislikes|length }}</td>
             <td>{{ user.state }}</td>
+            <td>{{ op_status }}</td>
             <td>{{ '🚫 Заблокирован' if user.is_blocked else '✅ Активен' }}</td>
             <td>{{ '🤖 Да' if user.is_virtual else '👤 Нет' }}</td>
             <td>
