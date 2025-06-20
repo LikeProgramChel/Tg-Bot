@@ -1,17 +1,3 @@
 {
-  "6092545763": {
-    "name": "Roman",
-    "age": 12312,
-    "gender": "М",
-    "bio": "asdad",
-    "photo_id": "AgACAgIAAxkBAAIBaWhSyg5mpj-vMFh1EEq7S7Ndc2RFAAIx_DEboxaZSvcH22TZmwyWAQADAgADeAADNgQ",
-    "likes": [],
-    "dislikes": [],
-    "state": "REG_NAME",
-    "preferred_gender": "",
-    "preferred_age_min": 18,
-    "preferred_age_max": 30,
-    "is_blocked": false,
-    "is_virtual": false
-  }
+
 }

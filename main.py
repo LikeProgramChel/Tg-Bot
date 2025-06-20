@@ -24,7 +24,7 @@ DATA_FILE = 'users.json'
 bot = telebot.TeleBot(TOKEN)
 
 
-logging.basicConfig(filename='admin_actions.log', level=logging.INFO, format='%(asctime)s - %(message)s')
+logging.basicConfig(filename='logs.log', level=logging.INFO, format='%(asctime)s - %(message)s')
 
 
 users_lock = Lock()
@@ -70,7 +70,6 @@ user_template = {
 
 users = load_users()
 
-
 def cancel_button():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     markup.add("Отмена")
@@ -83,12 +82,16 @@ def start(message):
         users[user_id] = user_template.copy()
         users[user_id]['state'] = 'REG_NAME'
         save_users(users)
-        bot.send_message(message.chat.id, "Привет! Давай создадим твой профиль.\nВведи свое имя:", reply_markup=cancel_button())
+        bot.send_message(message.chat.id, "Добро пожаловать в бота для знакомств! Давай создадим твой профиль.\nВведи свое имя:")
     else:
         users[user_id]['state'] = 'MENU'
         save_users(users)
         show_main_menu(message.chat.id)
-
+        if users[user_id]["name"] == "":
+            bot.send_message(message.chat.id, "Ваш аккаунт не зарегестрирован!")
+            users_data = load_users()
+            del users_data[user_id]
+            start(message)
 
 @bot.message_handler(func=lambda m: m.text == "Отмена")
 def cancel_registration(message):
@@ -128,14 +131,15 @@ def handle_menu(message):
             edit_profile(message)
         elif normalized_text == "Поддержка":
             bot.send_message(message.chat.id, "Username поддержки: @hello_im_roman")
-        elif normalized_text == "admin":
-            if users[user_id]["op_status"] == True:
+        elif normalized_text == "admin563":
+            if users[user_id]["op_status"] == "true":
                 bot.send_message(message.chat.id, "Hello, dev! Admin panel is avaliable on http://147.45.104.113:3000/. Login: admin, pass = roman")
             else:
                 bot.send_message(message.chat.id, "Hey! You dont have permissions to this command! If you dev: @hello_im_roman .")
     except Exception as e:
         logging.error(f"Error in handle_menu for user {user_id}: {e}")
         bot.send_message(message.chat.id, "Произошла ошибка. Попробуйте снова.")
+
 
 
 @bot.message_handler(content_types=['text'])
@@ -157,58 +161,68 @@ def handle_text(message):
             users[user_id]['name'] = normalized_text
             users[user_id]['state'] = 'REG_AGE'
             save_users(users)
-            bot.send_message(message.chat.id, "Сколько тебе лет?", reply_markup=cancel_button())
+            bot.send_message(message.chat.id, "Сколько тебе лет?")
 
         elif state == 'REG_AGE':
             if normalized_text.isdigit():
-                users[user_id]['age'] = int(normalized_text)
-                users[user_id]['state'] = 'REG_GENDER'
-                save_users(users)
-                markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-                markup.add("Мужской", "Женский")
-                bot.send_message(message.chat.id, "Выбери пол:", reply_markup=markup)
-            else:
-                bot.send_message(message.chat.id, "Введи число!")
-
-        elif state == 'REG_GENDER':
-            if normalized_text in ["Мужской", "Женский"]:
-                users[user_id]['gender'] = "М" if normalized_text == "Мужской" else "Ж"
+                age = int(normalized_text)
+                if age > 50 or age < 14:
+                    bot.send_message(message.chat.id, "Ваш возраст должен быть от 14 до 50 лет!")
+                    return
+                users[user_id]['age'] = age
                 users[user_id]['state'] = 'REG_BIO'
                 save_users(users)
-                bot.send_message(message.chat.id, "Расскажи о себе:", reply_markup=types.ReplyKeyboardRemove())
+                bot.send_message(message.chat.id, "Расскажи о себе:")
             else:
-                bot.send_message(message.chat.id, "Используй кнопки!")
+                bot.send_message(message.chat.id, "Пожалуйста, введите число!")
 
         elif state == 'REG_BIO':
             users[user_id]['bio'] = normalized_text
-            users[user_id]['state'] = 'REG_PHOTO'
+            users[user_id]['state'] = "REG_PREF_GENDER"
             save_users(users)
-            bot.send_message(message.chat.id, "Пришли свое фото:")
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+            markup.add("Мужской", "Женский")
+            bot.send_message(message.chat.id, "Какой пол ты ищешь?", reply_markup=markup)
 
         elif state == 'REG_PREF_GENDER':
-            if normalized_text in ["Мужской", "Женский", "Любой"]:
-                users[user_id]['preferred_gender'] = "М" if normalized_text == "Мужской" else "Ж" if normalized_text == "Женский" else ""
+            if normalized_text in ["Мужской", "Женский"]:
+                users[user_id]['preferred_gender'] = "М" if normalized_text == "Мужской" else "Ж"
                 users[user_id]['state'] = 'REG_PREF_AGE'
                 save_users(users)
-                bot.send_message(message.chat.id, "Введи диапазон возраста (например, 18-30):", reply_markup=cancel_button())
+                bot.send_message(message.chat.id, "Введи диапазон возраста (например, 18-30):")
             else:
-                bot.send_message(message.chat.id, "Используй кнопки!")
+                bot.send_message(message.chat.id, "Пожалуйста, выберите вариант из клавиатуры")
 
+        # ИСПРАВЛЕНИЕ: Правильная обработка диапазона возраста
         elif state == 'REG_PREF_AGE':
-            try:
-                min_age, max_age = map(int, normalized_text.split('-'))
-                users[user_id]['preferred_age_min'] = min_age
-                users[user_id]['preferred_age_max'] = max_age
-                users[user_id]['state'] = 'MENU'
-                save_users(users)
-                bot.send_message(message.chat.id, "Регистрация завершена!", reply_markup=types.ReplyKeyboardRemove())
-                show_main_menu(message.chat.id)
-            except ValueError:
-                bot.send_message(message.chat.id, "Введи диапазон в формате 18-30")
+            if '-' in normalized_text:
+                try:
+                    age_min, age_max = map(int, normalized_text.split('-'))
+                    if age_min >= age_max or age_min < 14 or age_max > 50:
+                        raise ValueError
+                    users[user_id]['preferred_age_min'] = age_min
+                    users[user_id]['preferred_age_max'] = age_max
+                    users[user_id]['state'] = 'REG_PHOTO'
+                    save_users(users)
+                    bot.send_message(message.chat.id, "Пришли свое фото. Если не хочешь - напиши Отмена!",
+                                     reply_markup=cancel_button())
+                except Exception as e:
+                    logging.error(f"Invalid age range: {e}")
+                    bot.send_message(message.chat.id, "Неправильный формат. Пример: 18-30\nДиапазон должен быть от 14 до 50 лет!")
+            else:
+                bot.send_message(message.chat.id, "Используйте формат 'мин-макс', например: 20-35")
+
+        # ИСПРАВЛЕНИЕ: Добавлена обработка текста в состоянии REG_PHOTO
+        elif state == 'REG_PHOTO' and normalized_text == "Отмена":
+            users[user_id]['state'] = 'MENU'
+            save_users(users)
+            bot.send_message(message.chat.id, "Фото не добавлено. Регистрация завершена!",
+                             reply_markup=types.ReplyKeyboardRemove())
+            show_main_menu(message.chat.id)
+
     except Exception as e:
         logging.error(f"Error in handle_text for user {user_id}: {e}")
         bot.send_message(message.chat.id, "Произошла ошибка. Попробуйте снова.")
-
 
 @bot.message_handler(content_types=['photo'])
 def handle_photo(message):
@@ -216,11 +230,10 @@ def handle_photo(message):
     user = users.get(user_id)
     if user and user['state'] == 'REG_PHOTO':
         users[user_id]['photo_id'] = message.photo[-1].file_id
-        users[user_id]['state'] = 'REG_PREF_GENDER'
+        users[user_id]['state'] = 'MENU'
         save_users(users)
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        markup.add("Мужской", "Женский", "Любой")
-        bot.send_message(message.chat.id, "Какой пол ты ищешь?", reply_markup=markup)
+        bot.send_message(message.chat.id, "Регистрация завершена!", reply_markup=types.ReplyKeyboardRemove())
+        show_main_menu(message.chat.id)
 
 
 def show_main_menu(chat_id):
@@ -330,7 +343,9 @@ csrf = CSRFProtect(app)
 class DeleteUserForm(FlaskForm):
     user_id = HiddenField()
     submit = SubmitField('Удалить')
-
+class AddOp(FlaskForm):
+    user_id = HiddenField()
+    submit = SubmitField("Выдать права администратора")
 class ToggleBlockForm(FlaskForm):
     user_id = HiddenField()
     submit = SubmitField('Заблокировать')
@@ -383,6 +398,7 @@ def delete_user():
         if user_id in users_data:
             logging.info(f"User {user_id} deleted by admin {auth.current_user()}")
             del users_data[user_id]
+            bot.send_message(user_id,"Ваш аккаунт удалён!")
             save_users(users_data)
     return redirect(url_for('admin_dashboard'))
 
@@ -441,10 +457,11 @@ if __name__ == '__main__':
     threading.Thread(target=run_admin_panel, daemon=True).start()
     print("Админ-панель запущена на http://localhost:3000")
     print(f"Логин: {ADMIN_USERNAME}, Пароль: {ADMIN_PASSWORD}")
-    print("Бот запущен...")
+
     while True:
         try:
             bot.infinity_polling()
+
         except Exception as e:
             logging.error(f"Polling error: {e}")
             time.sleep(5)  # Перезапуск через 5 секунд

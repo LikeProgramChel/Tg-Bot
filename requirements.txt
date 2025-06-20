@@ -2,3 +2,4 @@ flask
 flask-httpauth
 pyTelegramBotAPI
 Faker
+flask-wtf
