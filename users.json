@@ -1,18 +1,3 @@
 {
-  "6092545763": {
-    "name": "",
-    "age": 0,
-    "gender": "",
-    "bio": "",
-    "photo_id": "",
-    "likes": [],
-    "dislikes": [],
-    "state": "REG_NAME",
-    "preferred_gender": "",
-    "preferred_age_min": 18,
-    "preferred_age_max": 100,
-    "is_blocked": false,
-    "is_virtual": false,
-    "op_status": false
-  }
+
 }
