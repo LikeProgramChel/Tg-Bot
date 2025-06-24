@@ -65,7 +65,7 @@ user_template = {
     "preferred_age_max": 100,
     "is_blocked": False,
     "is_virtual": False,
-    "op_status":False
+    "op_status":False,
     "username":""
 }
 
