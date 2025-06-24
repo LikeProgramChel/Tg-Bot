@@ -324,7 +324,7 @@ def handle_callback(call):
         if call.data == "like":
             current_user['likes'].append(candidate_id)
             bot.answer_callback_query(call.id, "Твой лайк отправлен!")
-            bot.send_message(f"Спасибо! Его username: {call.from_user.username}")
+
         else:
             current_user['dislikes'].append(candidate_id)
             bot.answer_callback_query(call.id, "Дизлайк")
