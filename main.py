@@ -85,7 +85,7 @@ def start(message):
         users[user_id]['state'] = 'REG_NAME'
         save_users(users)
         bot.send_message(message.chat.id, "Добро пожаловать в бота для знакомств! Давай создадим твой профиль.\nВведи свое имя:")
-        user[user_id]['username'] = message.from_user.username
+        users[user_id]['username'] = message.from_user.username
     else:
         users[user_id]['state'] = 'MENU'
         save_users(users)
