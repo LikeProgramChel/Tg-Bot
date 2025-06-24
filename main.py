@@ -66,6 +66,7 @@ user_template = {
     "is_blocked": False,
     "is_virtual": False,
     "op_status":False
+    "username":""
 }
 
 users = load_users()
@@ -78,11 +79,13 @@ def cancel_button():
 @bot.message_handler(commands=['start'])
 def start(message):
     user_id = str(message.from_user.id)
+    
     if user_id not in users:
         users[user_id] = user_template.copy()
         users[user_id]['state'] = 'REG_NAME'
         save_users(users)
         bot.send_message(message.chat.id, "Добро пожаловать в бота для знакомств! Давай создадим твой профиль.\nВведи свое имя:")
+        user[user_id]['username'] = message.from_user.username
     else:
         users[user_id]['state'] = 'MENU'
         save_users(users)
@@ -258,7 +261,7 @@ def find_profiles(user_id):
 
 def show_profile(chat_id, profile_id):
     profile = users[profile_id]
-    caption = f"{profile['name']}, {profile['age']}\n\n{profile['bio']}"
+    caption = f"{profile['name']}, {profile['age']}\n\n{profile['bio']}\nИмя пользователя для связи: {profile["username"]}"
     try:
         bot.send_photo(
             chat_id,
@@ -286,7 +289,7 @@ def show_own_profile(message):
             bot.send_message(message.chat.id, "Ваш аккаунт заблокирован.")
             return
         profile = users[user_id]
-        caption = f"Твой профиль:\n\nИмя: {profile['name']}\nВозраст: {profile['age']}\nПол: {profile['gender']}\nО себе: {profile['bio']}"
+        caption = f"Твой профиль:\n\nИмя: {profile['name']}\nВозраст: {profile['age']}\nПол: {profile['gender']}\nО себе: {profile['bio']}\n Username:{user[user_id]["username"]}"
         if profile['photo_id']:
             bot.send_photo(message.chat.id, profile['photo_id'], caption=caption)
         else:
