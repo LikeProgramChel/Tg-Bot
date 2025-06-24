@@ -17,7 +17,7 @@ from faker import Faker
 import random
 import time
 import unicodedata
-
+import sys
 #bot
 DATA_FILE = 'users.json'
 
@@ -460,8 +460,14 @@ if __name__ == '__main__':
 
     while True:
         try:
+            print("Trying on bot...")
             bot.infinity_polling()
-
+            print("Bot is working!")
+            off = input()
+            if off == "stop":
+                sys.exit(0)
+            else:
+                print("Print a correct command!")
         except Exception as e:
             logging.error(f"Polling error: {e}")
             time.sleep(5)  # Перезапуск через 5 секунд
