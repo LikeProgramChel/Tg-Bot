@@ -173,12 +173,20 @@ def handle_text(message):
 
         elif state == 'REG_BIO':
             users[user_id]['bio'] = normalized_text
-            users[user_id]['state'] = "REG_PREF_GENDER"
+            users[user_id]['state'] = "REG_GENDER"
             save_users(users)
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
             markup.add("👨 Мужской", "👩 Женский")
+            bot.send_message(message.chat.id, "👨Какой у тебя пол?", reply_markup=markup)
+        elif state == "REG_GENDER":
+            if normalized_text in ["👨 Мужской", "👩 Женский"]:
+                users[user_id]['gender'] = "М" if "Мужской" in normalized_text else "Ж"
+                users[user_id]['state'] = "REG_PREF_GENDER"
+            else:
+                bot.send_message(message.chat.id, "⚠️ Пожалуйста, выберите вариант из клавиатуры")
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+            markup.add("👨 Мужской", "👩 Женский")
             bot.send_message(message.chat.id, "🔍 Какой пол ты ищешь?", reply_markup=markup)
-
         elif state == 'REG_PREF_GENDER':
             if normalized_text in ["👨 Мужской", "👩 Женский"]:
                 users[user_id]['preferred_gender'] = "М" if "Мужской" in normalized_text else "Ж"
