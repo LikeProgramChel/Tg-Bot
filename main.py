@@ -234,32 +234,56 @@ def show_main_menu(chat_id):
     markup.row("⚙️ Редактировать профиль", "🆘 Поддержка")
     bot.send_message(chat_id, "📱 Главное меню:", reply_markup=markup)
 
-def find_profiles(user_id):
-    current_user = users[user_id]
-    candidates = [
-        uid for uid, profile in users.items()
-        if (uid != user_id and
-            profile['photo_id'] and
-            not profile.get('is_blocked', False) and
-            uid not in current_user['likes'] and
-            uid not in current_user['dislikes'])
-    ]
-    logging.info(f"User {user_id} search: found {len(candidates)} candidates")
+def find_profiles(user_id, users_data=None):
+    if users_data is None:
+        users_data = load_users()
+    
+    current_user = users_data[user_id]
+    candidates = []
+    
+    for uid, profile in users_data.items():
+        # Пропускаем неактуальные профили
+        if (uid == user_id or
+            not profile.get('photo_id') or
+            profile.get('is_blocked', False) or
+            uid in current_user['likes'] or
+            uid in current_user['dislikes']):
+            continue
+            
+        # Фильтр по предпочтениям
+        gender_ok = (not current_user['preferred_gender'] or 
+                     profile['gender'] == current_user['preferred_gender'])
+        age_ok = (current_user['preferred_age_min'] <= profile['age'] <= current_user['preferred_age_max'])
+        
+        if gender_ok and age_ok:
+            candidates.append(uid)
+    
+    # Перемешиваем для случайного порядка
+    random.shuffle(candidates)
     return candidates
 
-def show_profile(chat_id, profile_id):
-    profile = users[profile_id]
-    caption = f"👤 {profile['name']}, {profile['age']}\n\n📝 {profile['bio']}\n\n💬 Username для связи: @{profile['username']}"
+def show_profile(chat_id, profile_id, users_data=None):
+    if users_data is None:
+        users_data = load_users()
+    
+    profile = users_data[profile_id]
+    # Форматирование информации о username
+    username_info = f"\n💬 Напиши: @{profile['username']}" if profile.get('username') else ""
+    
+    caption = (f"👤 {profile['name']}, {profile['age']}\n"
+               f"📝 {profile['bio']}"
+               f"{username_info}")
+    
     try:
         bot.send_photo(
             chat_id,
             profile['photo_id'],
-            caption=caption, 
+            caption=caption,
             reply_markup=generate_action_buttons()
         )
     except Exception as e:
-        logging.error(f"Error showing profile {profile_id}: {e}")
-        bot.send_message(chat_id, f"❌ Ошибка при показе анкеты: {profile['name']}")
+        logging.error(f"Ошибка показа профиля {profile_id}: {e}")
+        bot.send_message(chat_id, f"❌ Ошибка при загрузке анкеты: {profile['name']}")
 
 def generate_action_buttons():
     markup = types.InlineKeyboardMarkup()
@@ -300,29 +324,89 @@ def edit_profile(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback(call):
+    users_data = load_users()  # Загружаем актуальные данные
     user_id = str(call.from_user.id)
-    current_user = users[user_id]
-    if current_user.get('is_blocked', False):
-        bot.send_message(call.message.chat.id, "🚫 Ваш аккаунт заблокирован.")
+    
+    if user_id not in users_data:
+        bot.answer_callback_query(call.id, "❌ Ваш аккаунт не найден. Зарегистрируйтесь снова.")
         return
 
-    if call.data in ["like", "dislike"] and 'current_candidate' in current_user:
-        candidate_id = current_user['current_candidate']
-        if call.data == "like":
+    current_user = users_data[user_id]
+    if current_user.get('is_blocked', False):
+        bot.answer_callback_query(call.id, "🚫 Ваш аккаунт заблокирован.", show_alert=True)
+        return
+
+    # Проверяем наличие текущего кандидата
+    if 'current_candidate' not in current_user:
+        bot.answer_callback_query(call.id, "❌ Ошибка: кандидат не найден.")
+        return
+
+    candidate_id = current_user['current_candidate']
+    
+    # Проверяем существование кандидата
+    if candidate_id not in users_data:
+        bot.answer_callback_query(call.id, "❌ Ошибка: кандидат не существует.")
+        return
+
+    try:
+        # Удаляем сообщение с анкетой
+        bot.delete_message(call.message.chat.id, call.message.message_id)
+    except Exception as e:
+        logging.error(f"Ошибка при удалении сообщения: {e}")
+
+    # Обработка лайка
+    if call.data == "like":
+        # Проверка на повторный лайк
+        if candidate_id in current_user['likes']:
+            bot.answer_callback_query(call.id, "❌ Вы уже лайкали этот профиль.")
+        else:
+            # Добавляем лайк
             current_user['likes'].append(candidate_id)
-            bot.answer_callback_query(call.id, "❤️ Твой лайк отправлен!")
+            save_users(users_data)  # Сохраняем изменения
+            
+            # Проверяем взаимность
+            if user_id in users_data[candidate_id].get('likes', []):
+                # Формируем сообщение о мэтче
+                match_message = f"💞 Мэтч! Вы понравились {users_data[candidate_id]['name']}."
+                if users_data[candidate_id].get('username'):
+                    match_message += f"\n💬 Напиши: @{users_data[candidate_id]['username']}"
+                
+                # Отправляем уведомление текущему пользователю
+                bot.send_message(user_id, match_message)
+                
+                # Отправляем уведомление кандидату (если не виртуальный и не заблокирован)
+                if (not users_data[candidate_id].get('is_virtual', False) and 
+                    not users_data[candidate_id].get('is_blocked', False)):
+                    try:
+                        candidate_match_msg = f"💞 Мэтч! Вы понравились {users_data[user_id]['name']}."
+                        if users_data[user_id].get('username'):
+                            candidate_match_msg += f"\n💬 Напиши: @{users_data[user_id]['username']}"
+                        bot.send_message(candidate_id, candidate_match_msg)
+                    except Exception as e:
+                        logging.error(f"Ошибка отправки мэтча кандидату: {e}")
+                
+                bot.answer_callback_query(call.id, "💞 Мэтч! Вы понравились друг другу!")
+            else:
+                bot.answer_callback_query(call.id, "❤️ Твой лайк отправлен!")
+
+    # Обработка дизлайка
+    elif call.data == "dislike":
+        # Проверка на повторный дизлайк
+        if candidate_id in current_user['dislikes']:
+            bot.answer_callback_query(call.id, "❌ Вы уже дизлайкали этот профиль.")
         else:
             current_user['dislikes'].append(candidate_id)
+            save_users(users_data)
             bot.answer_callback_query(call.id, "👎 Дизлайк")
-        
-        candidates = find_profiles(user_id)
-        if candidates:
-            users[user_id]['current_candidate'] = candidates[0]
-            save_users(users)
-            show_profile(call.message.chat.id, candidates[0])
-        else:
-            bot.send_message(call.message.chat.id, "😔 Анкеты закончились!")
-            save_users(users)
+
+    # Ищем следующего кандидата
+    candidates = find_profiles(user_id, users_data)
+    if candidates:
+        users_data[user_id]['current_candidate'] = candidates[0]
+        save_users(users_data)
+        show_profile(call.message.chat.id, candidates[0], users_data)
+    else:
+        bot.send_message(call.message.chat.id, "😔 Анкеты закончились. Попробуйте позже!")
 
 # Flask admin panel setup
 app = Flask(__name__)
