@@ -99,13 +99,20 @@ def cancel_registration(message):
         save_users(users)
         bot.send_message(message.chat.id, "❌ Регистрация отменена.", reply_markup=types.ReplyKeyboardRemove())
         show_main_menu(message.chat.id)
-
+    else:
+        users[user_id]['state'] = 'MENU'
+        save_users(users)
+        bot.send_message("🖼️ Фото не добавлено. Регистрация завершена!")
+        show_main_menu(message.chat.id)
 @bot.message_handler(func=lambda m: unicodedata.normalize('NFKC', m.text.strip()) in ["🔍 Искать анкеты", "👤 Мой профиль", "⚙️ Редактировать профиль", "🆘 Поддержка", "admin563"])
 def handle_menu(message):
     user_id = str(message.from_user.id)
     normalized_text = message.text
     logging.info(f"Menu button pressed by {user_id}: {normalized_text}. He`s id: @{message.from_user.username}")
+    
     try:
+        users = load_users()  # Загружаем актуальные данные
+        
         if user_id not in users:
             bot.send_message(message.chat.id, "⚠️ Пожалуйста, зарегистрируйтесь с помощью /start")
             return
@@ -117,8 +124,11 @@ def handle_menu(message):
         if normalized_text == "🔍 Искать анкеты":
             candidates = find_profiles(user_id)
             if candidates:
+                # Обновляем данные перед сохранением
+                users = load_users()
                 users[user_id]['current_candidate'] = candidates[0]
                 save_users(users)
+                
                 show_profile(message.chat.id, candidates[0])
             else:
                 bot.send_message(message.chat.id, "😔 Анкет пока нет. Попробуй позже или добавь виртуальных пользователей в админ-панели!")
@@ -182,11 +192,12 @@ def handle_text(message):
             if normalized_text in ["👨 Мужской", "👩 Женский"]:
                 users[user_id]['gender'] = "М" if "Мужской" in normalized_text else "Ж"
                 users[user_id]['state'] = "REG_PREF_GENDER"
+                save_users(users)  # Сохраняем изменения
+                markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+                markup.add("👨 Мужской", "👩 Женский")
+                bot.send_message(message.chat.id, "🔍 Какой пол ты ищешь?", reply_markup=markup)
             else:
                 bot.send_message(message.chat.id, "⚠️ Пожалуйста, выберите вариант из клавиатуры")
-            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-            markup.add("👨 Мужской", "👩 Женский")
-            bot.send_message(message.chat.id, "🔍 Какой пол ты ищешь?", reply_markup=markup)
         elif state == 'REG_PREF_GENDER':
             if normalized_text in ["👨 Мужской", "👩 Женский"]:
                 users[user_id]['preferred_gender'] = "М" if "Мужской" in normalized_text else "Ж"
@@ -243,32 +254,71 @@ def show_main_menu(chat_id):
     bot.send_message(chat_id, "📱 Главное меню:", reply_markup=markup)
 
 def find_profiles(user_id):
-    current_user = users[user_id]
-    candidates = [
-        uid for uid, profile in users.items()
-        if (uid != user_id and
-            profile['photo_id'] and
-            not profile.get('is_blocked', False) and
-            uid not in current_user['likes'] and
-            uid not in current_user['dislikes'])
-    ]
-    logging.info(f"User {user_id} search: found {len(candidates)} candidates")
+    users = load_users()  # Всегда загружаем свежие данные
+    current_user = users.get(user_id)
+    if not current_user:
+        return []
+    
+    candidates = []
+    for uid, profile in users.items():
+        # Пропускаем самого себя
+        if uid == user_id:
+            continue
+            
+        # Пропускаем заблокированных пользователей
+        if profile.get('is_blocked', False):
+            continue
+
+            
+        # Пропускаем уже оцененных пользователей
+        if uid in current_user.get('likes', []) or uid in current_user.get('dislikes', []):
+            continue
+            
+        # Проверяем соответствие полу
+        pref_gender = current_user.get('preferred_gender', '')
+        if pref_gender and profile.get('gender') != pref_gender:
+            continue
+            
+        # Проверяем возрастной диапазон
+        age_min = current_user.get('preferred_age_min', 18)
+        age_max = current_user.get('preferred_age_max', 100)
+        if not (age_min <= profile.get('age', 0) <= age_max):
+            continue
+            
+        candidates.append(uid)
+    
+    random.shuffle(candidates)
     return candidates
 
 def show_profile(chat_id, profile_id):
-    profile = users[profile_id]
-    caption = f"👤 {profile['name']}, {profile['age']}\n\n📝 {profile['bio']}\n\n💬 Username для связи: @{profile['username']}"
     try:
-        bot.send_photo(
-            chat_id,
-            profile['photo_id'],
-            caption=caption, 
-            reply_markup=generate_action_buttons()
-        )
+        users = load_users()  # Загружаем актуальные данные
+        profile = users.get(profile_id)
+        if not profile:
+            bot.send_message(chat_id, "❌ Анкета не найдена")
+            return
+            
+        username_display = f"@{profile['username']}" if profile['username'] else "не указан"
+        caption = f"👤 {profile['name']}, {profile['age']}\n\n📝 {profile['bio']}\n\n💬 Username для связи: {username_display}"
+        
+        if profile['photo_id']:
+            # Отправляем фото с подписью и кнопками
+            bot.send_photo(
+                chat_id,
+                profile['photo_id'],
+                caption=caption,
+                reply_markup=generate_action_buttons()
+            )
+        else:
+            # Если фото нет, отправляем только текст с кнопками
+            bot.send_message(
+                chat_id,
+                caption,
+                reply_markup=generate_action_buttons()
+            )
     except Exception as e:
         logging.error(f"Error showing profile {profile_id}: {e}")
-        bot.send_message(chat_id, f"❌ Ошибка при показе анкеты: {profile['name']}")
-
+        bot.send_message(chat_id, f"❌ Ошибка при показе анкеты: {e}")
 def generate_action_buttons():
     markup = types.InlineKeyboardMarkup()
     markup.add(
@@ -435,8 +485,8 @@ def test_users():
                 'name': fake.first_name(),
                 'age': random.randint(18, 50),
                 'gender': random.choice(['М', 'Ж']),
-                'bio': fake.sentence(nb_words=10),
-                'photo_id': f"virtual_photo_{user_id}",
+                'bio': fake.sentence(nb_words=5),
+                'photo_id': "AgACAgIAAxkBAAID9mhdZH5VCKqtMgxDCDKGGpdqsizFAAJ59zEbWw3oSnP46HpZpR4NAQADAgADbQADNgQ",
                 'state': 'MENU',
                 'preferred_gender': random.choice(['М', 'Ж', '']),
                 'preferred_age_min': random.randint(18, 30),
