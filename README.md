@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Telebot](https://img.shields.io/badge/Telebot-4.12.0-green.svg)](https://github.com/eternnoir/pyTelegramBotAPI)
-
+[![Creator]](https://github.com/LikeProgramChel)
 
 Многофункциональный бот для знакомств в Telegram с админ-панелью и возможностью создания виртуальных пользователей.
 Используйте бесплатно!
