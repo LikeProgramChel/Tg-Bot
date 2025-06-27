@@ -21,7 +21,6 @@
 - Python 3.8+
 - [pyTelegramBotAPI](https://github.com/eternnoir/pyTelegramBotAPI)
 - Flask (для админ-панели)
-- SQLite (хранение данных в JSON)
 - Faker (генерация тестовых данных)
 
 
